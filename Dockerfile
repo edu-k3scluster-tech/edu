@@ -6,11 +6,11 @@ ADD . /build
 RUN go test ./...
 RUN go build -o service ./cmd/service
 
-FROM build as service
-
-COPY --from=build /build/app /srv/app
+# Use dedicated stage later
+# FROM build as service
+# COPY --from=build /build/app /srv/app
 
 EXPOSE 8080
-WORKDIR /srv
+# WORKDIR /srv
 
-CMD ["/srv/service"]
+CMD ["/build/service"]
