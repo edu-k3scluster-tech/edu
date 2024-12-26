@@ -1,0 +1,33 @@
+{{define "base"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css">
+    <title>edu portal</title>
+</head>
+<body>
+  <header>
+    {{ if .user }}
+    <nav>
+      <a href="{{ .pages.home }}">Главная</a>
+      <a href="{{ .pages.status }}">Статус</a>
+      <a href="{{ .pages.audit }}">Аудит лог</a>
+    </nav>
+    {{ end }}
+    <h1>edu portal</h1>
+  </header>
+
+  <main>
+    {{template "main" .}}
+  </main>
+
+  <footer>
+    <p>edu.k3scluster.tech</p>
+  </footer>
+</body>
+</html>
+
+
+{{end}}

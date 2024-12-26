@@ -1,0 +1,34 @@
+{{- $root := . -}}
+{{- range $ingress, $ingressValue := .Values.ingresses }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "chart.fullname" $root }}
+  labels:
+    app.kubernetes.io/name: {{ include "chart.name" $root }}
+    app.kubernetes.io/instance: {{ $ingress }}
+    app.kubernetes.io/managed-by: {{ $root.Release.Service }}
+  {{- with $ingressValue.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  ingressClassName: {{ $ingressValue.className }}
+  {{- if $ingressValue.tls }}
+  tls:
+    - hosts:
+        - {{ $ingressValue.hostname }}
+      secretName: {{ $ingressValue.hostname }}-tls
+  {{- end }}
+  rules:
+    - host: {{ $ingressValue.hostname }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "chart.fullname" $root }}-{{ $ingress }}
+                port:
+                  number: {{ $ingressValue.port }}
+{{- end }}

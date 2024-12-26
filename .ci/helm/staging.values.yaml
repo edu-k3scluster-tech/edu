@@ -1,0 +1,5 @@
+ingresses:
+  web:
+    hostname: edu.staging.k3scluster.tech
+
+public_env_variables: {}

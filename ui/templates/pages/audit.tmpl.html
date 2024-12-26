@@ -1,0 +1,20 @@
+{{define "main"}}
+<p>
+    <table>
+        <thead>
+          <tr>
+            <th>Дата</th>
+            <th>Событие</th>
+          </tr>
+        </thead>
+        <tbody>
+        {{ range .logs }}
+          <tr>
+            <td>{{ .DateTime }}</td>
+            <td>{{ .Action }}</td>
+          </tr>
+        {{ end }}
+        </tbody>
+      </table>
+</p>
+{{end}}

@@ -1,0 +1,94 @@
+{{- $root := . -}}
+{{- range $deploy, $deployValue := .Values.deployments }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "chart.fullname" $root }}-{{ $deploy }}
+  labels:
+    app.kubernetes.io/name: {{ include "chart.name" $root }}
+    app.kubernetes.io/instance: {{ $deploy }}
+    app.kubernetes.io/managed-by: {{ $root.Release.Service }}
+spec:
+  {{- if not $deployValue.autoscaling.enabled }}
+  replicas: {{ $deployValue.autoscaling.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "chart.name" $root }}
+      app.kubernetes.io/instance: {{ $deploy }}
+      app.kubernetes.io/managed-by: {{ $root.Release.Service }}
+  template:
+    metadata:
+      {{- with $root.Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        app.kubernetes.io/name: {{ include "chart.name" $root }}
+        app.kubernetes.io/instance: {{ $deploy }}
+        app.kubernetes.io/managed-by: {{ $root.Release.Service }}
+    spec:
+      {{- with $root.Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "chart.serviceAccountName" $root }}
+      securityContext:
+        {{- toYaml $root.Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: app
+          securityContext:
+            {{- toYaml $root.Values.securityContext | nindent 12 }}
+          image: "{{ $root.Values.image.repository }}:{{ $root.Values.image.tag | default $root.Chart.AppVersion }}"
+          imagePullPolicy: {{ $root.Values.image.pullPolicy }}
+          {{ if .command }}
+          command:
+          {{- toYaml .command | nindent 12 }}
+          {{- end  }}
+          {{- if .args }}
+          args:
+          {{- toYaml .args | nindent 12 }}
+          {{- end }}
+
+          {{- $service := get $root.Values.services $deploy }}
+          ports:
+          {{- range $port, $portValue := $service.ports }}
+            - name: {{ $port }}
+              containerPort: {{ $portValue.targetPort }}
+              protocol: {{ $portValue.protocol }}
+          {{- end }}
+          env:
+          {{- range $key, $value := $root.Values.public_env_variables }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+          {{- end }}
+          {{- range $key, $value := $root.Values.secret_env_variables }}
+            - name: {{ $key }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "chart.fullname" $root }}-env
+                  key: {{ $key }}
+          {{- end }}
+          {{ if .livenessProbe }}
+          livenessProbe:
+            {{- toYaml .livenessProbe | nindent 12 }}
+          {{- end }}
+          {{ if .readinessProbe }}
+          readinessProbe:
+            {{- toYaml .readinessProbe | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml $deployValue.resources | nindent 12 }}
+      {{- with $root.Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $root.Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $root.Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}
