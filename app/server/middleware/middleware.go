@@ -1,4 +1,4 @@
-package server
+package middleware
 
 import (
 	"context"
@@ -28,7 +28,7 @@ func AuthMiddleware(onerr func(w http.ResponseWriter, err error), authenticator 
 				return
 			}
 			if user == nil {
-				http.Redirect(w, r, RouteAuthRequired, http.StatusSeeOther)
+				http.Redirect(w, r, "/login", http.StatusSeeOther)
 				return
 			}
 			next.ServeHTTP(w, r.WithContext(UserToCtx(r.Context(), *user)))

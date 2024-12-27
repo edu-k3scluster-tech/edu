@@ -10,7 +10,7 @@ RUN go build -o service ./cmd/service
 # FROM build as service
 # COPY --from=build /build/app /srv/app
 
-EXPOSE 8080
+EXPOSE 8000
 # WORKDIR /srv
 
 CMD ["/build/service"]

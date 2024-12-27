@@ -1,13 +1,20 @@
 CREATE TABLE IF NOT EXISTS users (
-    id         VARCHAR(16)  NOT NULL PRIMARY KEY,
-    tg_id      VARCHAR(255) NOT NULL UNIQUE,
-    auth_token VARCHAR(16)  UNIQUE
+    id          INTEGER NOT NULL PRIMARY KEY,
+    tg_id       INTEGER UNIQUE,
+    tg_username VARCHAR(255)
 );
 
-CREATE TABLE IF NOT EXISTS one_time_tokens (
-    user_id  VARCHAR(16) NOT NULL UNIQUE,
-    token    VARCHAR(16) NOT NULL UNIQUE,
+CREATE TABLE IF NOT EXISTS auth_tokens (
+    user_id    VARCHAR(16) NOT NULL,
+    token      VARCHAR(16) NOT NULL UNIQUE,
+    created_at DATETIME NOT NULL,
     CONSTRAINT UniqPair UNIQUE (user_id, token)
+);
+
+CREATE TABLE IF NOT EXISTS tg_one_time_tokens (
+    token   VARCHAR(16) NOT NULL UNIQUE,
+    user_id VARCHAR(16),
+    created_at DATETIME NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS audit_logs (
@@ -15,6 +22,3 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     action     VARCHAR(255) NOT NULL,
     created_at DATETIME NOT NULL
 );
-
-INSERT INTO users (id, tg_id) VALUES ("user-id-1", "tg-user-id-1");
-INSERT INTO one_time_tokens (user_id, token) VALUES ("user-id-1", "random-token");

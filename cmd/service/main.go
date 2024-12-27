@@ -10,11 +10,14 @@ import (
 	"edu-portal/app/store/migrator"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/joho/godotenv"
 	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
-	sqliteDB, err := sql.Open("sqlite3", ":memory:")
+	godotenv.Load()
+
+	sqliteDB, err := sql.Open("sqlite3", "./db.sqlite")
 	if err != nil {
 		log.Fatalf("init db: %v", err)
 	}
