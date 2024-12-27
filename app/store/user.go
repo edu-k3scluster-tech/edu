@@ -10,8 +10,8 @@ import (
 
 func (s *Store) CreateUser(ctx context.Context, user *app.User) error {
 	query := `
-		INSERT INTO users (tg_id, tg_username)
-		VALUES (:tg_id, :tg_username)
+		INSERT INTO users (tg_id, tg_username, status)
+		VALUES (:tg_id, :tg_username, :status)
 		RETURNING id;
 	`
 	rows, err := s.db.NamedQuery(query, user)

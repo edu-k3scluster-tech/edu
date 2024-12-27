@@ -42,6 +42,7 @@ func (h Handler) Handle(ctx context.Context, b *bot.Bot, update *models.Update) 
 		user = &app.User{
 			TgId:       &update.Message.From.ID,
 			TgUsername: &update.Message.From.Username,
+			Status:     app.UserStatusNew,
 		}
 	}
 
