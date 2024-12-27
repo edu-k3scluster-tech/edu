@@ -2,10 +2,19 @@ package app
 
 import "time"
 
+type UserStatus string
+
+const (
+	UserStatusNew         UserStatus = "new"
+	UserStatusActive      UserStatus = "active"
+	UserStatusDeactivated UserStatus = "deactivated"
+)
+
 type User struct {
-	Id         int     `db:"id"`
-	TgId       *int64  `db:"tg_id"`
-	TgUsername *string `db:"tg_username"`
+	Id         int        `db:"id"`
+	TgId       *int64     `db:"tg_id"`
+	TgUsername *string    `db:"tg_username"`
+	Status     UserStatus `db:"status"`
 }
 
 type AuditLog struct {
