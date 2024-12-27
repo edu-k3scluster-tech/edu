@@ -1,4 +1,4 @@
-package server
+package middleware
 
 import (
 	"context"
@@ -10,8 +10,8 @@ import (
 const sessionTokenParam = "session_token"
 
 type Authenticator struct {
-	secured  bool
-	resolver func(context.Context, string) (*app.User, error)
+	Secured  bool
+	Resolver func(context.Context, string) (*app.User, error)
 }
 
 func (a *Authenticator) IsAuthenticated(ctx context.Context, r *http.Request) (*app.User, error) {
@@ -23,19 +23,19 @@ func (a *Authenticator) IsAuthenticated(ctx context.Context, r *http.Request) (*
 			return nil, err
 		}
 	}
-	user, err := a.resolver(r.Context(), cookie.Value)
+	user, err := a.Resolver(r.Context(), cookie.Value)
 	if err != nil {
 		return nil, err
 	}
 	return user, err
 }
 
-func (a *Authenticator) Authenticate(ctx context.Context, w http.ResponseWriter, user *app.User) {
+func (a *Authenticator) Authenticate(ctx context.Context, w http.ResponseWriter, token string) {
 	http.SetCookie(w, &http.Cookie{
-		Name:     sessionTokenParam,
-		Value:    user.Token,
-		HttpOnly: true,
-		Secure:   a.secured,
-		Path:     "/",
+		Name:  sessionTokenParam,
+		Value: token,
+		// HttpOnly: true,
+		Secure: a.Secured,
+		Path:   "/",
 	})
 }

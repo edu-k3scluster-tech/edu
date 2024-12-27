@@ -1,12 +1,5 @@
 {{define "main"}}
 <p>
-    <ul>
-        <li>
-            ID: {{ .user.Id }}
-        </li>
-        <li>
-            Telegram ID: {{ .user.TgId }}
-        </li>
-    </ul>
+    Telegram: @{{ .user.TgUsername }}
 </p>
 {{end}}

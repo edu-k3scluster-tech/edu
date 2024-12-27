@@ -11,15 +11,19 @@
   <header>
     {{ if .user }}
     <nav>
-      <a href="{{ .pages.home }}">Главная</a>
-      <a href="{{ .pages.status }}">Статус</a>
-      <a href="{{ .pages.audit }}">Аудит лог</a>
+      <a href="/">Главная</a>
+      <a href="/status">Статус</a>
+      <a href="/audit">Аудит лог</a>
     </nav>
     {{ end }}
     <h1>edu portal</h1>
   </header>
 
   <main>
+    <p class="notice">
+      <strong>Аккаунт еще не подтвержден.</strong><br>
+      Этот процесс может занять некоторое время. Пожалуйста, подождите.
+    </p>
     {{template "main" .}}
   </main>
 

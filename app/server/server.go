@@ -1,90 +1,69 @@
 package server
 
 import (
-	"bytes"
 	"context"
-	"edu-portal/app"
-	"fmt"
+	"edu-portal/app/store"
 	"log"
 	"net/http"
 	"text/template"
 
+	"edu-portal/app/server/api"
+	mdw "edu-portal/app/server/middleware"
+	"edu-portal/app/server/pages"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/render"
 )
-
-type Store interface {
-	GetUserByAuthToken(ctx context.Context, token string) (*app.User, error)
-	ResolveOneTimeToken(ctx context.Context, oneTimeToken, authToken string) (*app.User, error)
-	GetLogs(ctx context.Context, userId string) ([]app.AuditLog, error)
-}
 
 type Server struct {
 	templates     map[string]*template.Template
-	store         Store
-	authenticator *Authenticator
+	authenticator *mdw.Authenticator
+	store         *store.Store
 }
 
-func New(secured bool, templates map[string]*template.Template, store Store) *Server {
+func New(secured bool, templates map[string]*template.Template, store *store.Store) *Server {
 	return &Server{
 		templates: templates,
-		store:     store,
-		authenticator: &Authenticator{
-			secured:  secured,
-			resolver: store.GetUserByAuthToken,
+		authenticator: &mdw.Authenticator{
+			Secured:  secured,
+			Resolver: store.GetUserByAuthToken,
 		},
+		store: store,
 	}
 }
 
 func (s Server) Run(ctx context.Context) error {
-	return http.ListenAndServe(":8000", s.routes())
-
-}
-
-func (s Server) routes() chi.Router {
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
+	pages := pages.Pages{Templates: s.templates, Store: s.store}
+	// HTML pages
 	r.Group(func(r chi.Router) {
-		r.Use(AuthMiddleware(s.render500, s.authenticator))
+		r.Use(mdw.AuthMiddleware(s.render500, s.authenticator))
 
-		r.Get(RouteHome, s.homePage)
-		r.Get(RouteStatus, s.statusPage)
-		r.Get(RouteAudit, s.auditPage)
+		r.Get("/", pages.Home)
+		r.Get("/status", pages.Status)
+		r.Get("/audit", pages.Audit)
 	})
 
-	r.Get(RouteAuthRequired, s.authRequired)
-	r.Get(RouteAuth, s.auth)
+	r.Get("/login", pages.Login)
 
-	return r
-}
+	api := api.Api{Store: s.store}
+	// REST
+	r.Route("/api", func(r chi.Router) {
+		r.Use(middleware.AllowContentType("application/json"))
+		r.Use(render.SetContentType(render.ContentTypeJSON))
 
-func (s Server) render(w http.ResponseWriter, status int, page, tmplName string, data any) {
-	ts, ok := s.templates[page]
-	if !ok {
-		s.render500(w, fmt.Errorf("the template %s does not exist", page))
-		return
-	}
+		r.Post("/auth", api.Auth)
+	})
+	r.Group(func(r chi.Router) {
 
-	buf := new(bytes.Buffer)
+	})
 
-	if tmplName == "" {
-		tmplName = "base"
-	}
-
-	err := ts.ExecuteTemplate(buf, tmplName, data)
-	if err != nil {
-		s.render500(w, err)
-		return
-	}
-
-	w.WriteHeader(status)
-	if _, err = buf.WriteTo(w); err != nil {
-		s.render500(w, err)
-		return
-	}
+	return http.ListenAndServe(":8000", r)
 }
 
 func (s Server) render500(w http.ResponseWriter, err error) {
