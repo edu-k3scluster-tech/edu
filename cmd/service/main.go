@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"log"
+	"os"
 
 	"edu-portal/app/server"
 	"edu-portal/app/store"
@@ -17,7 +18,12 @@ import (
 func main() {
 	godotenv.Load()
 
-	sqliteDB, err := sql.Open("sqlite3", "./db.sqlite")
+	dbPath, exists := os.LookupEnv("DB_PATH")
+	if !exists {
+		log.Fatalf("DB_PATH env is required")
+	}
+
+	sqliteDB, err := sql.Open("sqlite3", dbPath)
 	if err != nil {
 		log.Fatalf("init db: %v", err)
 	}

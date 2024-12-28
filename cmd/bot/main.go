@@ -19,12 +19,17 @@ import (
 )
 
 func main() {
-	godotenv.Load()
+	_ = godotenv.Load()
+
+	dbPath, exists := os.LookupEnv("DB_PATH")
+	if !exists {
+		log.Fatalf("DB_PATH env is required")
+	}
 
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
 
-	sqliteDB, err := sql.Open("sqlite3", "./db.sqlite")
+	sqliteDB, err := sql.Open("sqlite3", dbPath)
 	if err != nil {
 		log.Fatalf("init db: %v", err)
 	}
