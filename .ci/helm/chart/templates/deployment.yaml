@@ -79,6 +79,9 @@ spec:
           {{- end }}
           resources:
             {{- toYaml $deployValue.resources | nindent 12 }}
+          volumeMounts:
+            - name: sqlite-volume
+              mountPath: /mnt/db # Путь внутри контейнера
       {{- with $root.Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -87,6 +90,10 @@ spec:
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      volumes:
+        - name: sqlite-volume
+          persistentVolumeClaim:
+            claimName: sqlite-pvc
       {{- with $root.Values.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}

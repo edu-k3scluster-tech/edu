@@ -2,4 +2,5 @@ ingresses:
   web:
     hostname: edu.k3scluster.tech
 
-public_env_variables: {}
+public_env_variables:
+  DB_PATH: /mnt/db/edu.sqlite
