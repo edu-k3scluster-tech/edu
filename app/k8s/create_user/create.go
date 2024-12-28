@@ -111,7 +111,7 @@ func (u *Creator) CreateCSR(ctx context.Context, user *app.User) (bool, error) {
 	}
 
 	if err != nil {
-		return false, nil
+		return false, err
 	} else {
 		return true, nil
 	}

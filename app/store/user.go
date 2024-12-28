@@ -29,6 +29,32 @@ func (s *Store) CreateUser(ctx context.Context, user *app.User) error {
 	return nil
 }
 
+func (s *Store) GrantAdminPermissions(ctx context.Context, userId int) error {
+	query := `
+		UPDATE users
+		SET is_staff = true, status = 'active'
+		WHERE id = ?
+	`
+	_, err := s.db.ExecContext(ctx, query, userId)
+	return err
+}
+
+func (s *Store) GetUserById(ctx context.Context, id int64) (*app.User, error) {
+	query := `SELECT * FROM users WHERE id = ?`
+
+	var user app.User
+
+	if err := s.db.QueryRowxContext(ctx, query, id).StructScan(&user); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		} else {
+			return nil, err
+		}
+	}
+
+	return &user, nil
+}
+
 func (s *Store) GetUserByTgId(ctx context.Context, id int64) (*app.User, error) {
 	query := `SELECT * FROM users WHERE tg_id = ?`
 

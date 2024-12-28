@@ -32,10 +32,10 @@ func (a *Authenticator) IsAuthenticated(ctx context.Context, r *http.Request) (*
 
 func (a *Authenticator) Authenticate(ctx context.Context, w http.ResponseWriter, token string) {
 	http.SetCookie(w, &http.Cookie{
-		Name:  sessionTokenParam,
-		Value: token,
-		// HttpOnly: true,
-		Secure: a.Secured,
-		Path:   "/",
+		Name:     sessionTokenParam,
+		Value:    token,
+		HttpOnly: true,
+		Secure:   a.Secured,
+		Path:     "/",
 	})
 }
