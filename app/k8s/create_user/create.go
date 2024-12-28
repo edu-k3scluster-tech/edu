@@ -88,20 +88,23 @@ func (u *Creator) Create(ctx context.Context, user *app.User) (string, error) {
 
 	_, err = clientset.CertificatesV1().CertificateSigningRequests().Create(context.TODO(), csr, v1.CreateOptions{})
 
-	var a *k8serrors.StatusError
-	if errors.As(err, &a) {
-		switch a.ErrStatus.Code {
-		case 409:
-			return "", nil
-		}
-	}
-
 	if err != nil {
-		return "", fmt.Errorf("create csr: %v", err)
+		var a *k8serrors.StatusError
+
+		if !errors.As(err, &a) {
+			return "", fmt.Errorf("create csr: %v", err)
+		} else {
+			switch a.ErrStatus.Code {
+			case 409:
+			default:
+				return "", err
+			}
+		}
 	}
 
 	csr.Status.Conditions = append(csr.Status.Conditions, certificates.CertificateSigningRequestCondition{
 		Type:           certificates.CertificateApproved,
+		Status:         "Approved",
 		Reason:         "User activation",
 		Message:        "This CSR was approved",
 		LastUpdateTime: v1.Now(),
