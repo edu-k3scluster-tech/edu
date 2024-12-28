@@ -1,0 +1,26 @@
+{{define "main"}}
+<p>
+    <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Telegram</th>
+            <th>Статус</th>
+            <th>Роль</th>
+            <th>Дата создания</th>
+          </tr>
+        </thead>
+        <tbody>
+        {{ range .users }}
+          <tr>
+            <td>{{ .ID }}</td>
+            <td><a href="https://t.me/{{ .Telegram }}">@{{ .Telegram }}</a></td>
+            <td>{{ .Status }}</td>
+            <td>{{ .Role }}</td>
+            <td>{{ .CreatedAt }}</td>
+          </tr>
+        {{ end }}
+        </tbody>
+      </table>
+</p>
+{{end}}

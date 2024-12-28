@@ -2,7 +2,9 @@ CREATE TABLE IF NOT EXISTS users (
     id          INTEGER NOT NULL PRIMARY KEY,
     tg_id       INTEGER UNIQUE,
     tg_username VARCHAR(255),
-    status      VARCHAR(32) NOT NULL
+    status      VARCHAR(32) NOT NULL,
+    is_staff    BOOL,
+    created_at  DATETIME NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS auth_tokens (

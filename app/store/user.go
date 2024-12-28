@@ -10,8 +10,8 @@ import (
 
 func (s *Store) CreateUser(ctx context.Context, user *app.User) error {
 	query := `
-		INSERT INTO users (tg_id, tg_username, status)
-		VALUES (:tg_id, :tg_username, :status)
+		INSERT INTO users (tg_id, tg_username, status, is_staff, created_at)
+		VALUES (:tg_id, :tg_username, :status, :is_staff, :created_at)
 		RETURNING id;
 	`
 	rows, err := s.db.NamedQuery(query, user)
@@ -63,4 +63,20 @@ func (s *Store) GetUserByAuthToken(ctx context.Context, token string) (*app.User
 	}
 
 	return &user, nil
+}
+
+func (s *Store) GetUsers(ctx context.Context) ([]app.User, error) {
+	query := `
+		SELECT *
+		FROM users
+	`
+	var users []app.User
+	if err := s.db.SelectContext(ctx, &users, query); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		} else {
+			return nil, err
+		}
+	}
+	return users, nil
 }

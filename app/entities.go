@@ -15,6 +15,8 @@ type User struct {
 	TgId       *int64     `db:"tg_id"`
 	TgUsername *string    `db:"tg_username"`
 	Status     UserStatus `db:"status"`
+	IsStaff    bool       `db:"is_staff"`
+	CreatedAt  time.Time  `db:"created_at"`
 }
 
 type AuditLog struct {
