@@ -30,13 +30,38 @@ func (s *Store) CreateUser(ctx context.Context, user *app.User) error {
 }
 
 func (s *Store) GrantAdminPermissions(ctx context.Context, userId int) error {
+	tx, err := s.db.Beginx()
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		} else {
+			tx.Commit()
+		}
+	}()
+
 	query := `
 		UPDATE users
 		SET is_staff = true, status = 'active'
 		WHERE id = ?
 	`
-	_, err := s.db.ExecContext(ctx, query, userId)
-	return err
+	result, err := tx.ExecContext(ctx, query, userId)
+	if err != nil {
+		return err
+	}
+	affected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if affected > 0 {
+		if err = s.logWithTx(ctx, tx, userId, "admin permissions have been granted"); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (s *Store) GetUserById(ctx context.Context, id int) (*app.User, error) {

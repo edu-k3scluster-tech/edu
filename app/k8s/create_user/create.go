@@ -22,14 +22,10 @@ import (
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
 
-type Creator struct {
-	kubeConfigPath string
-}
+type Creator struct{}
 
-func New(kubeConfigPath string) *Creator {
-	return &Creator{
-		kubeConfigPath: kubeConfigPath,
-	}
+func New() *Creator {
+	return &Creator{}
 }
 
 func (u *Creator) Create(ctx context.Context, user *app.User) (string, error) {

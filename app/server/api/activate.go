@@ -29,5 +29,6 @@ func (a *Api) Activate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// config, err := createuser.New().Create()
 	render.Render(w, r, &ActivateResponse{})
 }

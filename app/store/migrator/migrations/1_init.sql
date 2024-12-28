@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS auth_tokens (
 
 CREATE TABLE IF NOT EXISTS tg_one_time_tokens (
     token      VARCHAR(16) NOT NULL UNIQUE,
-    user_id    VARCHAR(16),
+    user_id    INTEGER,
     created_at DATETIME NOT NULL
 );
 

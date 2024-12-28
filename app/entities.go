@@ -20,7 +20,7 @@ type User struct {
 }
 
 type AuditLog struct {
-	UserId    string    `db:"user_id"`
+	UserId    int       `db:"user_id"`
 	Action    string    `db:"action"`
 	CreatedAt time.Time `db:"created_at"`
 }

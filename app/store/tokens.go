@@ -54,12 +54,30 @@ func (s *Store) AuthByOneTimeToken(ctx context.Context, authToken, oneTimeToken 
 		CreatedAt: time.Now(),
 	}
 
+	tx, err := s.db.Beginx()
+	if err != nil {
+		return false, err
+	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		} else {
+			tx.Commit()
+		}
+	}()
+
 	query = `
 		INSERT INTO auth_tokens (user_id, token, created_at)
 		VALUES (:user_id, :token, :created_at)
 	`
-	if _, err := s.db.NamedExecContext(ctx, query, &dbAuthToken); err != nil {
+	if _, err = tx.NamedExecContext(ctx, query, &dbAuthToken); err != nil {
 		return false, err
 	}
+
+	if err = s.logWithTx(ctx, tx, dbAuthToken.UserId, "authenticated by one time tg token"); err != nil {
+		return false, err
+	}
+
 	return true, nil
 }

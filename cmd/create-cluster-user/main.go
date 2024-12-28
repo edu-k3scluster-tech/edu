@@ -47,7 +47,7 @@ func main() {
 	}
 
 	kubecfg, err := createuser.
-		New(" /Users/vryazanov/.kube/raspberry").
+		New().
 		Create(context.Background(), user)
 	if err != nil {
 		log.Fatalf("create k8s user: %v", err)
