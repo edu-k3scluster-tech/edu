@@ -51,11 +51,13 @@ spec:
           {{- end }}
 
           {{- $service := get $root.Values.services $deploy }}
+          {{- if $service }}
           ports:
           {{- range $port, $portValue := $service.ports }}
             - name: {{ $port }}
               containerPort: {{ $portValue.targetPort }}
               protocol: {{ $portValue.protocol }}
+          {{- end }}
           {{- end }}
           env:
           {{- range $key, $value := $root.Values.public_env_variables }}

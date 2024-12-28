@@ -19,7 +19,7 @@ func UserToCtx(ctx context.Context, user app.User) context.Context {
 	return context.WithValue(ctx, userContextKey, user)
 }
 
-func AuthMiddleware(onerr func(w http.ResponseWriter, err error), authenticator *Authenticator) func(next http.Handler) http.Handler {
+func AuthMiddleware(onerr func(w http.ResponseWriter, err error), check func(*app.User) bool, authenticator *Authenticator) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			user, err := authenticator.IsAuthenticated(r.Context(), r)
@@ -31,8 +31,19 @@ func AuthMiddleware(onerr func(w http.ResponseWriter, err error), authenticator 
 				http.Redirect(w, r, "/login", http.StatusSeeOther)
 				return
 			}
+			if !check(user) {
+				http.Redirect(w, r, "/", http.StatusSeeOther)
+				return
+			}
 			next.ServeHTTP(w, r.WithContext(UserToCtx(r.Context(), *user)))
 		})
 	}
+}
 
+func AnyUser(u *app.User) bool {
+	return true
+}
+
+func OnlyStaff(u *app.User) bool {
+	return u.IsStaff
 }

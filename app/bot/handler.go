@@ -5,6 +5,7 @@ import (
 	"edu-portal/app"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
@@ -43,6 +44,7 @@ func (h Handler) Handle(ctx context.Context, b *bot.Bot, update *models.Update) 
 			TgId:       &update.Message.From.ID,
 			TgUsername: &update.Message.From.Username,
 			Status:     app.UserStatusNew,
+			CreatedAt:  time.Now(),
 		}
 	}
 

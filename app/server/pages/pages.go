@@ -13,6 +13,7 @@ import (
 type Store interface {
 	AssignOneTimeToken(ctx context.Context, token string) error
 	GetLogs(ctx context.Context, userId int) ([]app.AuditLog, error)
+	GetUsers(ctx context.Context) ([]app.User, error)
 }
 
 type Pages struct {

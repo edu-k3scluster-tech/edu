@@ -14,6 +14,9 @@
       <a href="/">Главная</a>
       <a href="/status">Статус</a>
       <a href="/audit">Аудит лог</a>
+      {{ if .user.IsStaff }}
+      <a href="/users">Пользователи</a>
+      {{ end }}
     </nav>
     {{ end }}
     <h1>edu portal</h1>

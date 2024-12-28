@@ -42,11 +42,19 @@ func (s Server) Run(ctx context.Context) error {
 	pages := pages.Pages{Templates: s.templates, Store: s.store}
 	// HTML pages
 	r.Group(func(r chi.Router) {
-		r.Use(mdw.AuthMiddleware(s.render500, s.authenticator))
+		r.Use(mdw.AuthMiddleware(s.render500, mdw.AnyUser, s.authenticator))
 
 		r.Get("/", pages.Home)
 		r.Get("/status", pages.Status)
 		r.Get("/audit", pages.Audit)
+		r.Get("/users", pages.Users)
+	})
+
+	// Admin area
+	r.Group(func(r chi.Router) {
+		r.Use(mdw.AuthMiddleware(s.render500, mdw.OnlyStaff, s.authenticator))
+
+		r.Get("/users", pages.Users)
 	})
 
 	r.Get("/login", pages.Login)
