@@ -1,6 +1,7 @@
 {{- $root := . -}}
 {{- range $deploy, $deployValue := .Values.deployments }}
 {{- if $deployValue.autoscaling.enabled }}
+---
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
