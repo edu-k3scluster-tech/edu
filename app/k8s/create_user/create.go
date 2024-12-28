@@ -159,7 +159,7 @@ func (u *Creator) Create(ctx context.Context, user *app.User) (string, error) {
 		},
 		RoleRef: rbacv1.RoleRef{
 			Kind:     "ClusterRole",
-			Name:     fmt.Sprintf("cluster-role-%s", username),
+			Name:     "ro-cluster-role",
 			APIGroup: "rbac.authorization.k8s.io",
 		},
 	}, v1.CreateOptions{})
