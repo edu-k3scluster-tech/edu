@@ -5,6 +5,7 @@ ADD . /build
 
 RUN go test ./...
 RUN go build -o service ./cmd/service
+RUN go build -o bot ./cmd/bot
 
 # Use dedicated stage later
 # FROM build as service
@@ -12,5 +13,3 @@ RUN go build -o service ./cmd/service
 
 EXPOSE 8000
 # WORKDIR /srv
-
-CMD ["/build/service"]
