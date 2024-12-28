@@ -62,12 +62,12 @@ func (u *Creator) Create(ctx context.Context, user *app.User) (string, error) {
 
 	config, err := rest.InClusterConfig()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("get incluster config: %v", err)
 	}
 
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("create config: %v", err)
 	}
 
 	csr := &certificates.CertificateSigningRequest{
@@ -97,7 +97,7 @@ func (u *Creator) Create(ctx context.Context, user *app.User) (string, error) {
 	}
 
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("create csr: %v", err)
 	}
 
 	csr.Status.Conditions = append(csr.Status.Conditions, certificates.CertificateSigningRequestCondition{
@@ -107,19 +107,19 @@ func (u *Creator) Create(ctx context.Context, user *app.User) (string, error) {
 		LastUpdateTime: v1.Now(),
 	})
 
-	csr, err = clientset.CertificatesV1().CertificateSigningRequests().UpdateApproval(context.Background(), "kubernetes.io/kube-apiserver-client", csr, v1.UpdateOptions{})
+	csr, err = clientset.CertificatesV1().CertificateSigningRequests().UpdateApproval(context.Background(), username, csr, v1.UpdateOptions{})
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("approve csr: %v", err)
 	}
 
 	csr, err = clientset.CertificatesV1().CertificateSigningRequests().Get(context.TODO(), csr.GetName(), v1.GetOptions{})
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("get csr after approval: %v", err)
 	}
 
 	err = clientset.CertificatesV1().CertificateSigningRequests().Delete(context.TODO(), csr.GetName(), v1.DeleteOptions{})
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("delete csr: %v", err)
 	}
 
 	_, err = clientset.RbacV1().ClusterRoles().Create(ctx, &rbacv1.ClusterRole{
@@ -140,7 +140,7 @@ func (u *Creator) Create(ctx context.Context, user *app.User) (string, error) {
 		},
 	}, v1.CreateOptions{})
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("create cluster role: %v", err)
 	}
 
 	_, err = clientset.RbacV1().ClusterRoleBindings().Create(ctx, &rbacv1.ClusterRoleBinding{
@@ -161,7 +161,7 @@ func (u *Creator) Create(ctx context.Context, user *app.User) (string, error) {
 		},
 	}, v1.CreateOptions{})
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("create cluster role binding: %v", err)
 	}
 
 	kubeconfig := &clientcmdapi.Config{
@@ -193,7 +193,7 @@ func (u *Creator) Create(ctx context.Context, user *app.User) (string, error) {
 
 	data, err := clientcmd.Write(*kubeconfig)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("write kube config: %v", err)
 	} else {
 		return string(data), nil
 	}
