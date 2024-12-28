@@ -39,7 +39,7 @@ func (s *Store) GrantAdminPermissions(ctx context.Context, userId int) error {
 	return err
 }
 
-func (s *Store) GetUserById(ctx context.Context, id int64) (*app.User, error) {
+func (s *Store) GetUserById(ctx context.Context, id int) (*app.User, error) {
 	query := `SELECT * FROM users WHERE id = ?`
 
 	var user app.User
