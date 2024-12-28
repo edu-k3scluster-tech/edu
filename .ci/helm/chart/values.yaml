@@ -59,7 +59,7 @@ deployments:
   web:
     replicaCount: 2
     command:
-      - /cmd/service
+      - /build/service
     # livenessProbe:
     #   httpGet:
     #     path: /
@@ -84,7 +84,7 @@ deployments:
   bot:
     replicaCount: 1
     command:
-      - /cmd/bot
+      - /build/bot
     # livenessProbe:
     #   httpGet:
     #     path: /
