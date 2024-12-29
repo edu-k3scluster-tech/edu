@@ -22,6 +22,8 @@ import (
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
 
+const clusterHost = "https://109.106.138.127:6443"
+
 type Creator struct{}
 
 func New() *Creator {
@@ -125,26 +127,26 @@ func (u *Creator) Create(ctx context.Context, user *app.User) (string, error) {
 		return "", fmt.Errorf("delete csr: %v", err)
 	}
 
-	_, err = clientset.RbacV1().ClusterRoles().Create(ctx, &rbacv1.ClusterRole{
-		ObjectMeta: v1.ObjectMeta{
-			Name: fmt.Sprintf("cluster-role-%s", username),
-		},
-		Rules: []rbacv1.PolicyRule{
-			{
-				APIGroups: []string{""},
-				Resources: []string{"pods", "namespaces", "services", "ingresses", "nodes", "endpoints"},
-				Verbs:     []string{"get", "watch", "list"},
-			},
-			{
-				APIGroups: []string{"apps"},
-				Resources: []string{"deployments", "replicasets"},
-				Verbs:     []string{"get", "watch", "list"},
-			},
-		},
-	}, v1.CreateOptions{})
-	if err != nil {
-		return "", fmt.Errorf("create cluster role: %v", err)
-	}
+	// _, err = clientset.RbacV1().ClusterRoles().Create(ctx, &rbacv1.ClusterRole{
+	// 	ObjectMeta: v1.ObjectMeta{
+	// 		Name: fmt.Sprintf("cluster-role-%s", username),
+	// 	},
+	// 	Rules: []rbacv1.PolicyRule{
+	// 		{
+	// 			APIGroups: []string{""},
+	// 			Resources: []string{"pods", "namespaces", "services", "ingresses", "nodes", "endpoints"},
+	// 			Verbs:     []string{"get", "watch", "list"},
+	// 		},
+	// 		{
+	// 			APIGroups: []string{"apps"},
+	// 			Resources: []string{"deployments", "replicasets"},
+	// 			Verbs:     []string{"get", "watch", "list"},
+	// 		},
+	// 	},
+	// }, v1.CreateOptions{})
+	// if err != nil {
+	// 	return "", fmt.Errorf("create cluster role: %v", err)
+	// }
 
 	_, err = clientset.RbacV1().ClusterRoleBindings().Create(ctx, &rbacv1.ClusterRoleBinding{
 		ObjectMeta: v1.ObjectMeta{
@@ -170,7 +172,7 @@ func (u *Creator) Create(ctx context.Context, user *app.User) (string, error) {
 	kubeconfig := &clientcmdapi.Config{
 		Clusters: map[string]*clientcmdapi.Cluster{
 			"k3scluster.tech": {
-				Server:                   "https://109.106.138.127:6443",
+				Server:                   clusterHost,
 				CertificateAuthorityData: config.CAData,
 			},
 		},
