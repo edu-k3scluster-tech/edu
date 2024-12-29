@@ -30,7 +30,7 @@ func New() *Creator {
 	return &Creator{}
 }
 
-func (u *Creator) Create(ctx context.Context, user *app.User) (string, error) {
+func (c *Creator) Create(ctx context.Context, user *app.User) (string, error) {
 	key, err := rsa.GenerateKey(rand.Reader, 1024)
 	if err != nil {
 		return "", err
@@ -106,7 +106,7 @@ func (u *Creator) Create(ctx context.Context, user *app.User) (string, error) {
 
 	csr.Status.Conditions = append(csr.Status.Conditions, certificates.CertificateSigningRequestCondition{
 		Type:           certificates.CertificateApproved,
-		Status:         "Approved",
+		Status:         "True",
 		Reason:         "User activation",
 		Message:        "This CSR was approved",
 		LastUpdateTime: v1.Now(),
@@ -127,44 +127,7 @@ func (u *Creator) Create(ctx context.Context, user *app.User) (string, error) {
 		return "", fmt.Errorf("delete csr: %v", err)
 	}
 
-	// _, err = clientset.RbacV1().ClusterRoles().Create(ctx, &rbacv1.ClusterRole{
-	// 	ObjectMeta: v1.ObjectMeta{
-	// 		Name: fmt.Sprintf("cluster-role-%s", username),
-	// 	},
-	// 	Rules: []rbacv1.PolicyRule{
-	// 		{
-	// 			APIGroups: []string{""},
-	// 			Resources: []string{"pods", "namespaces", "services", "ingresses", "nodes", "endpoints"},
-	// 			Verbs:     []string{"get", "watch", "list"},
-	// 		},
-	// 		{
-	// 			APIGroups: []string{"apps"},
-	// 			Resources: []string{"deployments", "replicasets"},
-	// 			Verbs:     []string{"get", "watch", "list"},
-	// 		},
-	// 	},
-	// }, v1.CreateOptions{})
-	// if err != nil {
-	// 	return "", fmt.Errorf("create cluster role: %v", err)
-	// }
-
-	_, err = clientset.RbacV1().ClusterRoleBindings().Create(ctx, &rbacv1.ClusterRoleBinding{
-		ObjectMeta: v1.ObjectMeta{
-			Name: fmt.Sprintf("cluster-role-binding-%s", username),
-		},
-		Subjects: []rbacv1.Subject{
-			{
-				Kind:     "user",
-				Name:     username,
-				APIGroup: "rbac.authorization.k8s.io",
-			},
-		},
-		RoleRef: rbacv1.RoleRef{
-			Kind:     "ClusterRole",
-			Name:     "ro-cluster-role",
-			APIGroup: "rbac.authorization.k8s.io",
-		},
-	}, v1.CreateOptions{})
+	_, err = c.CreateClusterRoleBinding(ctx, clientset, username)
 	if err != nil {
 		return "", fmt.Errorf("create cluster role binding: %v", err)
 	}
@@ -201,5 +164,61 @@ func (u *Creator) Create(ctx context.Context, user *app.User) (string, error) {
 		return "", fmt.Errorf("write kube config: %v", err)
 	} else {
 		return string(data), nil
+	}
+}
+
+func (c *Creator) CreateClusterRole(ctx context.Context, client *kubernetes.Clientset, username string) (string, error) {
+	name := fmt.Sprintf("cluster-role-%s", username)
+
+	_, err := client.RbacV1().ClusterRoles().Create(ctx, &rbacv1.ClusterRole{
+		ObjectMeta: v1.ObjectMeta{
+			Name: name,
+		},
+		Rules: []rbacv1.PolicyRule{
+			{
+				APIGroups: []string{""},
+				Resources: []string{"pods", "namespaces", "services", "ingresses", "nodes", "endpoints"},
+				Verbs:     []string{"get", "watch", "list"},
+			},
+			{
+				APIGroups: []string{"apps"},
+				Resources: []string{"deployments", "replicasets"},
+				Verbs:     []string{"get", "watch", "list"},
+			},
+		},
+	}, v1.CreateOptions{})
+
+	if err != nil {
+		return "", err
+	} else {
+		return name, nil
+	}
+}
+
+func (c *Creator) CreateClusterRoleBinding(ctx context.Context, client *kubernetes.Clientset, username string) (string, error) {
+	name := fmt.Sprintf("cluster-role-binding-%s", username)
+
+	_, err := client.RbacV1().ClusterRoleBindings().Create(ctx, &rbacv1.ClusterRoleBinding{
+		ObjectMeta: v1.ObjectMeta{
+			Name: name,
+		},
+		Subjects: []rbacv1.Subject{
+			{
+				Kind:     "user",
+				Name:     username,
+				APIGroup: "rbac.authorization.k8s.io",
+			},
+		},
+		RoleRef: rbacv1.RoleRef{
+			Kind:     "ClusterRole",
+			Name:     "ro-cluster-role",
+			APIGroup: "rbac.authorization.k8s.io",
+		},
+	}, v1.CreateOptions{})
+
+	if err != nil {
+		return "", err
+	} else {
+		return name, nil
 	}
 }
