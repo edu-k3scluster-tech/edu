@@ -40,17 +40,16 @@ func (s Server) Run(ctx context.Context) error {
 	r.Use(middleware.Recoverer)
 
 	pages := pages.Pages{Templates: s.templates, Store: s.store}
-	// HTML pages
+	// HTML Users
 	r.Group(func(r chi.Router) {
 		r.Use(mdw.AuthMiddleware(s.render500, mdw.AnyUser, s.authenticator))
 
 		r.Get("/", pages.Home)
 		r.Get("/status", pages.Status)
 		r.Get("/audit", pages.Audit)
-		r.Get("/users", pages.Users)
 	})
 
-	// Admin area
+	// HTML Staff
 	r.Group(func(r chi.Router) {
 		r.Use(mdw.AuthMiddleware(s.render500, mdw.OnlyStaff, s.authenticator))
 
@@ -65,12 +64,18 @@ func (s Server) Run(ctx context.Context) error {
 		r.Use(middleware.AllowContentType("application/json"))
 		r.Use(render.SetContentType(render.ContentTypeJSON))
 
-		r.Post("/auth", api.Auth)
-	})
-	r.Group(func(r chi.Router) {
+		// Public
+		r.Group(func(r chi.Router) {
+			r.Post("/auth", api.Auth)
+		})
 
-	})
+		// Protected
+		r.Group(func(r chi.Router) {
+			r.Use(mdw.AuthMiddleware(s.render500, mdw.OnlyStaff, s.authenticator))
 
+			r.Post("/users/{id}/activate", api.Activate)
+		})
+	})
 	return http.ListenAndServe(":8000", r)
 }
 
