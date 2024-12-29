@@ -44,3 +44,12 @@ func (s *Store) logWithTx(ctx context.Context, tx *sqlx.Tx, userId int, msg stri
 	})
 	return err
 }
+
+func (s *Store) Log(ctx context.Context, userId int, msg string) error {
+	tx, err := s.db.Beginx()
+	if err != nil {
+		return err
+	}
+	defer tx.Commit()
+	return s.logWithTx(ctx, tx, userId, msg)
+}

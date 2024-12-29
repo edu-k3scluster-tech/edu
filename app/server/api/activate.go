@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -56,6 +57,24 @@ func (a *Api) Activate(w http.ResponseWriter, r *http.Request) {
 		render.Render(w, r, &ActivateResponse{
 			Error: pointer.To("user not found"),
 		})
+		return
+	}
+
+	defer func() {
+		if err == nil {
+			err = a.Store.Log(r.Context(), userId, "k8s user has been created")
+		} else {
+			err = a.Store.Log(r.Context(), userId, fmt.Sprintf("k8s user creation failed: %v", err))
+		}
+
+		if err != nil {
+			log.Printf("[ERROR] Save audit log: %v", err)
+		}
+	}()
+
+	if err := a.Store.Log(r.Context(), userId, "creating a cluster role binging..."); err != nil {
+		log.Printf("[ERROR] Save audit log: %v", err)
+		w.WriteHeader(500)
 		return
 	}
 

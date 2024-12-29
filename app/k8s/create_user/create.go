@@ -204,7 +204,7 @@ func (c *Creator) CreateClusterRoleBinding(ctx context.Context, client *kubernet
 		},
 		Subjects: []rbacv1.Subject{
 			{
-				Kind:     "user",
+				Kind:     "User",
 				Name:     username,
 				APIGroup: "rbac.authorization.k8s.io",
 			},
