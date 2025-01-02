@@ -86,7 +86,7 @@ func (c *Cluster) GenerateUserCertificate(ctx context.Context, username string) 
 		LastUpdateTime: v1.Now(),
 	})
 
-	csr, err = c.clientset.CertificatesV1().CertificateSigningRequests().UpdateApproval(context.Background(), username, csr, v1.UpdateOptions{})
+	csr, err = c.clientset.CertificatesV1().CertificateSigningRequests().UpdateApproval(context.TODO(), username, csr, v1.UpdateOptions{})
 	if err != nil {
 		return nil, nil, fmt.Errorf("approve csr: %v", err)
 	}
@@ -94,6 +94,10 @@ func (c *Cluster) GenerateUserCertificate(ctx context.Context, username string) 
 	csr, err = c.clientset.CertificatesV1().CertificateSigningRequests().Get(context.TODO(), csr.GetName(), v1.GetOptions{})
 	if err != nil {
 		return nil, nil, fmt.Errorf("get csr after approval: %v", err)
+	}
+
+	if len(csr.Status.Certificate) == 0 {
+		return nil, nil, fmt.Errorf("certificate is empty")
 	}
 
 	return csr.Status.Certificate, pem.EncodeToMemory(
