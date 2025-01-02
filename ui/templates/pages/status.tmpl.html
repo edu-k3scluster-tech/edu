@@ -1,4 +1,10 @@
 {{define "main"}}
 <p>На этой странице отображается статус всех интеграций.</p>
+{{ if not .hasIntegration }}
 <p>На данный момент у вас нет активных интеграций.</p>
+{{ end }}
+{{ if .k8sconfig }}
+<p>Ваш k8s конфиг:</p>
+<pre><code>{{ .k8sconfig }}</code></pre>
+{{ end }}
 {{end}}

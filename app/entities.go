@@ -36,3 +36,11 @@ type TgOneTimeToken struct {
 	UserId    *int      `db:"user_id"`
 	CreatedAt time.Time `db:"created_at"`
 }
+
+type UserCertificate struct {
+	UserId      int       `db:"user_id"`
+	Username    string    `db:"username"`
+	Certificate string    `db:"certificate"`
+	PrivateKey  string    `db:"private_key"`
+	CreatedAt   time.Time `db:"created_at"`
+}

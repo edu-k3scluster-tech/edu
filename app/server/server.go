@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"edu-portal/app/cluster"
 	"edu-portal/app/store"
 	"log"
 	"net/http"
@@ -20,16 +21,18 @@ type Server struct {
 	templates     map[string]*template.Template
 	authenticator *mdw.Authenticator
 	store         *store.Store
+	cluster       *cluster.Cluster
 }
 
-func New(secured bool, templates map[string]*template.Template, store *store.Store) *Server {
+func New(secured bool, templates map[string]*template.Template, store *store.Store, cluster *cluster.Cluster) *Server {
 	return &Server{
 		templates: templates,
 		authenticator: &mdw.Authenticator{
 			Secured:  secured,
 			Resolver: store.GetUserByAuthToken,
 		},
-		store: store,
+		store:   store,
+		cluster: cluster,
 	}
 }
 
@@ -39,7 +42,7 @@ func (s Server) Run(ctx context.Context) error {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
-	pages := pages.Pages{Templates: s.templates, Store: s.store}
+	pages := pages.Pages{Templates: s.templates, Store: s.store, Cluster: s.cluster}
 	// HTML Users
 	r.Group(func(r chi.Router) {
 		r.Use(mdw.AuthMiddleware(s.render500, mdw.AnyUser, s.authenticator))
@@ -58,7 +61,7 @@ func (s Server) Run(ctx context.Context) error {
 
 	r.Get("/login", pages.Login)
 
-	api := api.Api{Store: s.store}
+	api := api.Api{Store: s.store, Cluster: s.cluster}
 	// REST
 	r.Route("/api", func(r chi.Router) {
 		r.Use(middleware.AllowContentType("application/json"))
