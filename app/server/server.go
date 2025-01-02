@@ -4,13 +4,13 @@ import (
 	"context"
 	"edu-portal/app/cluster"
 	"edu-portal/app/store"
-	"log"
 	"net/http"
 	"text/template"
 
 	"edu-portal/app/server/api"
 	mdw "edu-portal/app/server/middleware"
 	"edu-portal/app/server/pages"
+	"edu-portal/app/server/utils"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -25,14 +25,15 @@ type Server struct {
 }
 
 func New(secured bool, templates map[string]*template.Template, store *store.Store, cluster *cluster.Cluster) *Server {
+	authenticator := &mdw.Authenticator{
+		Resolver: store.GetUserByAuthToken,
+	}
+
 	return &Server{
-		templates: templates,
-		authenticator: &mdw.Authenticator{
-			Secured:  secured,
-			Resolver: store.GetUserByAuthToken,
-		},
-		store:   store,
-		cluster: cluster,
+		templates:     templates,
+		authenticator: authenticator,
+		store:         store,
+		cluster:       cluster,
 	}
 }
 
@@ -45,7 +46,7 @@ func (s Server) Run(ctx context.Context) error {
 	pages := pages.Pages{Templates: s.templates, Store: s.store, Cluster: s.cluster}
 	// HTML Users
 	r.Group(func(r chi.Router) {
-		r.Use(mdw.AuthMiddleware(s.render500, mdw.AnyUser, s.authenticator))
+		r.Use(mdw.AuthMiddleware(mdw.AnyUser, utils.Redirect("/login"), utils.Redirect("/"), s.authenticator))
 
 		r.Get("/", pages.Home)
 		r.Get("/status", pages.Status)
@@ -54,7 +55,7 @@ func (s Server) Run(ctx context.Context) error {
 
 	// HTML Staff
 	r.Group(func(r chi.Router) {
-		r.Use(mdw.AuthMiddleware(s.render500, mdw.OnlyStaff, s.authenticator))
+		r.Use(mdw.AuthMiddleware(mdw.OnlyStaff, utils.Redirect("/login"), utils.Redirect("/"), s.authenticator))
 
 		r.Get("/users", pages.Users)
 	})
@@ -74,15 +75,10 @@ func (s Server) Run(ctx context.Context) error {
 
 		// Protected
 		r.Group(func(r chi.Router) {
-			r.Use(mdw.AuthMiddleware(s.render500, mdw.OnlyStaff, s.authenticator))
+			r.Use(mdw.AuthMiddleware(mdw.OnlyStaff, utils.Render401, utils.Render403, s.authenticator))
 
 			r.Post("/users/{id}/activate", api.Activate)
 		})
 	})
 	return http.ListenAndServe(":8000", r)
-}
-
-func (s Server) render500(w http.ResponseWriter, err error) {
-	log.Printf("[ERROR] %v", err)
-	http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 }

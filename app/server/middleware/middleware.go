@@ -3,6 +3,7 @@ package middleware
 import (
 	"context"
 	"edu-portal/app"
+	"edu-portal/app/server/utils"
 	"net/http"
 )
 
@@ -19,20 +20,22 @@ func UserToCtx(ctx context.Context, user app.User) context.Context {
 	return context.WithValue(ctx, userContextKey, user)
 }
 
-func AuthMiddleware(onerr func(w http.ResponseWriter, err error), check func(*app.User) bool, authenticator *Authenticator) func(next http.Handler) http.Handler {
+func AuthMiddleware(check func(*app.User) bool, on401, on403 func(w http.ResponseWriter, r *http.Request), authenticator *Authenticator) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			user, err := authenticator.IsAuthenticated(r.Context(), r)
 			if err != nil {
-				onerr(w, err)
+				utils.Render500(w, err)
 				return
 			}
 			if user == nil {
-				http.Redirect(w, r, "/login", http.StatusSeeOther)
+				on401(w, r)
+				// http.Redirect(w, r, "/login", http.StatusSeeOther)
 				return
 			}
 			if !check(user) {
-				http.Redirect(w, r, "/", http.StatusSeeOther)
+				// http.Redirect(w, r, "/", http.StatusSeeOther)
+				on403(w, r)
 				return
 			}
 			next.ServeHTTP(w, r.WithContext(UserToCtx(r.Context(), *user)))

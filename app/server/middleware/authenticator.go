@@ -10,7 +10,6 @@ import (
 const sessionTokenParam = "session_token"
 
 type Authenticator struct {
-	Secured  bool
 	Resolver func(context.Context, string) (*app.User, error)
 }
 
@@ -28,14 +27,4 @@ func (a *Authenticator) IsAuthenticated(ctx context.Context, r *http.Request) (*
 		return nil, err
 	}
 	return user, err
-}
-
-func (a *Authenticator) Authenticate(ctx context.Context, w http.ResponseWriter, token string) {
-	http.SetCookie(w, &http.Cookie{
-		Name:     sessionTokenParam,
-		Value:    token,
-		HttpOnly: true,
-		Secure:   a.Secured,
-		Path:     "/",
-	})
 }

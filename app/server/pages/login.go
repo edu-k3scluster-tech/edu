@@ -1,6 +1,7 @@
 package pages
 
 import (
+	"edu-portal/app/server/utils"
 	"edu-portal/pkg/token"
 	"fmt"
 	"net/http"
@@ -9,7 +10,7 @@ import (
 func (p Pages) Login(w http.ResponseWriter, r *http.Request) {
 	oneTimeToken := token.RandomToken()
 	if err := p.Store.AssignOneTimeToken(r.Context(), oneTimeToken); err != nil {
-		p.render500(w, err)
+		utils.Render500(w, err)
 		return
 	}
 

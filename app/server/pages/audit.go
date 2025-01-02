@@ -2,6 +2,7 @@ package pages
 
 import (
 	"edu-portal/app/server/middleware"
+	"edu-portal/app/server/utils"
 	"fmt"
 	"net/http"
 	"time"
@@ -10,12 +11,12 @@ import (
 func (p Pages) Audit(w http.ResponseWriter, r *http.Request) {
 	user, exists := middleware.UserFromCtx(r.Context())
 	if !exists {
-		p.render500(w, fmt.Errorf("user not found"))
+		utils.Render500(w, fmt.Errorf("user not found"))
 		return
 	}
 	logs, err := p.Store.GetLogs(r.Context(), user.Id)
 	if err != nil {
-		p.render500(w, err)
+		utils.Render500(w, err)
 		return
 	}
 

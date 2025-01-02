@@ -22,8 +22,7 @@ func (a *ActivateRequest) Bind(r *http.Request) error {
 }
 
 type ActivateResponse struct {
-	Config string  `json:"config"`
-	Error  *string `json:"error"`
+	Error *string `json:"error"`
 }
 
 func (a *ActivateResponse) Render(w http.ResponseWriter, r *http.Request) error {

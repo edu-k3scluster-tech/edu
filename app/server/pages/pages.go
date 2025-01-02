@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"context"
 	"edu-portal/app"
+	"edu-portal/app/server/utils"
 	"fmt"
-	"log"
 	"net/http"
 	"text/template"
 )
@@ -30,7 +30,7 @@ type Pages struct {
 func (p Pages) render(w http.ResponseWriter, status int, page, tmplName string, data any) {
 	ts, ok := p.Templates[page]
 	if !ok {
-		p.render500(w, fmt.Errorf("the template %s does not exist", page))
+		utils.Render500(w, fmt.Errorf("the template %s does not exist", page))
 		return
 	}
 
@@ -42,18 +42,13 @@ func (p Pages) render(w http.ResponseWriter, status int, page, tmplName string, 
 
 	err := ts.ExecuteTemplate(buf, tmplName, data)
 	if err != nil {
-		p.render500(w, err)
+		utils.Render500(w, err)
 		return
 	}
 
 	w.WriteHeader(status)
 	if _, err = buf.WriteTo(w); err != nil {
-		p.render500(w, err)
+		utils.Render500(w, err)
 		return
 	}
-}
-
-func (p Pages) render500(w http.ResponseWriter, err error) {
-	log.Printf("[ERROR] %v", err)
-	http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 }

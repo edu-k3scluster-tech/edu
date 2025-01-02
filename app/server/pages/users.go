@@ -2,6 +2,7 @@ package pages
 
 import (
 	"edu-portal/app/server/middleware"
+	"edu-portal/app/server/utils"
 	"fmt"
 	"net/http"
 	"time"
@@ -12,12 +13,12 @@ import (
 func (p Pages) Users(w http.ResponseWriter, r *http.Request) {
 	user, exists := middleware.UserFromCtx(r.Context())
 	if !exists {
-		p.render500(w, fmt.Errorf("user not found"))
+		utils.Render500(w, fmt.Errorf("user not found"))
 		return
 	}
 	users, err := p.Store.GetUsers(r.Context())
 	if err != nil {
-		p.render500(w, fmt.Errorf("user not found"))
+		utils.Render500(w, fmt.Errorf("user not found"))
 		return
 	}
 
