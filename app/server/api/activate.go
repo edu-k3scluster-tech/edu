@@ -1,12 +1,14 @@
 package api
 
 import (
+	"encoding/base64"
 	"fmt"
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
-	createuser "edu-portal/app/k8s/create_user"
+	"edu-portal/app"
 
 	"github.com/AlekSi/pointer"
 	"github.com/go-chi/chi/v5"
@@ -72,22 +74,32 @@ func (a *Api) Activate(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	if err := a.Store.Log(r.Context(), userId, "creating a cluster role binging..."); err != nil {
-		log.Printf("[ERROR] Save audit log: %v", err)
-		w.WriteHeader(500)
-		return
-	}
+	username := fmt.Sprintf("edu-user-%d", user.Id)
 
-	config, err := createuser.
-		New().
-		Create(r.Context(), user)
+	certificate, privateKey, err := a.Cluster.GenerateUserCertificate(r.Context(), username)
 	if err != nil {
 		w.WriteHeader(500)
 		log.Printf("[ERROR] Create cluster role binding: %v", err)
 		return
 	}
 
-	render.Render(w, r, &ActivateResponse{
-		Config: config,
-	})
+	if err := a.Store.SaveUserCertificate(r.Context(), &app.UserCertificate{
+		UserId:      user.Id,
+		Username:    username,
+		Certificate: base64.StdEncoding.EncodeToString(certificate),
+		PrivateKey:  base64.StdEncoding.EncodeToString(privateKey),
+		CreatedAt:   time.Now(),
+	}); err != nil {
+		w.WriteHeader(500)
+		log.Printf("[ERROR] Save user certificate: %v", err)
+		return
+	}
+
+	if err := a.Cluster.CreateClusterRoleBinding(r.Context(), username); err != nil {
+		w.WriteHeader(500)
+		log.Printf("[ERROR] Create cluster role binding: %v", err)
+		return
+	}
+
+	render.Render(w, r, &ActivateResponse{})
 }
