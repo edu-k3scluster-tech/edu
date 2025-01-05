@@ -3,6 +3,7 @@ package pages
 import (
 	"bytes"
 	"context"
+	"crypto/rsa"
 	"edu-portal/app"
 	"edu-portal/app/server/utils"
 	"fmt"
@@ -18,7 +19,7 @@ type Store interface {
 }
 
 type Cluster interface {
-	Config(ctx context.Context, certificate, privateKey []byte) (string, error)
+	Config(ctx context.Context, certificate []byte, privateKey *rsa.PrivateKey) (string, error)
 }
 
 type Pages struct {

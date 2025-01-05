@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 CREATE TABLE IF NOT EXISTS k8s_certificates (
     user_id     VARCHAR(16) NOT NULL,
     username    VARCHAR(128) NOT NULL,
-    certificate TEXT NOT NULL,
+    certificate TEXT,
     private_key TEXT NOT NULL,
     created_at  DATETIME NOT NULL ,
     CONSTRAINT UniqUserRole UNIQUE (user_id, username)

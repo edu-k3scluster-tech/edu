@@ -3,7 +3,6 @@ package pages
 import (
 	"edu-portal/app/server/middleware"
 	"edu-portal/app/server/utils"
-	"encoding/base64"
 	"fmt"
 	"net/http"
 )
@@ -23,17 +22,17 @@ func (p Pages) Status(w http.ResponseWriter, r *http.Request) {
 	var k8sconfig string
 
 	if certificate != nil {
-		rawCertificate, err := base64.StdEncoding.DecodeString(certificate.Certificate)
+		rawCertificate, err := certificate.GetCertificate()
 		if err != nil {
 			utils.Render500(w, err)
 			return
 		}
-		rawPrivateKey, err := base64.StdEncoding.DecodeString(certificate.PrivateKey)
+		privateKey, err := certificate.GetPrivateKey()
 		if err != nil {
 			utils.Render500(w, err)
 			return
 		}
-		k8sconfig, err = p.Cluster.Config(r.Context(), []byte(rawCertificate), []byte(rawPrivateKey))
+		k8sconfig, err = p.Cluster.Config(r.Context(), []byte(rawCertificate), privateKey)
 		if err != nil {
 			utils.Render500(w, err)
 			return

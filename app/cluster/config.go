@@ -2,12 +2,15 @@ package cluster
 
 import (
 	"context"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
 
 	clientcmd "k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
 
-func (c *Cluster) Config(ctx context.Context, certificate, privateKey []byte) (string, error) {
+func (c *Cluster) Config(ctx context.Context, certificate []byte, privateKey *rsa.PrivateKey) (string, error) {
 	clusterName := "k3scluster.tech"
 	clusterServer := "https://109.106.138.127:6443"
 	userName := "user"
@@ -23,7 +26,12 @@ func (c *Cluster) Config(ctx context.Context, certificate, privateKey []byte) (s
 
 	config.AuthInfos[userName] = &clientcmdapi.AuthInfo{
 		ClientCertificateData: []byte(certificate),
-		ClientKeyData:         []byte(privateKey),
+		ClientKeyData: []byte(pem.EncodeToMemory(
+			&pem.Block{
+				Type:  "RSA PRIVATE KEY",
+				Bytes: x509.MarshalPKCS1PrivateKey(privateKey),
+			},
+		)),
 	}
 
 	config.Contexts[contextName] = &clientcmdapi.Context{
