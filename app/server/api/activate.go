@@ -1,14 +1,11 @@
 package api
 
 import (
-	"encoding/base64"
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
-	"time"
 
-	"edu-portal/app"
+	"edu-portal/app/server/utils"
 
 	"github.com/AlekSi/pointer"
 	"github.com/go-chi/chi/v5"
@@ -26,77 +23,41 @@ type ActivateResponse struct {
 }
 
 func (a *ActivateResponse) Render(w http.ResponseWriter, r *http.Request) error {
+	if a.Error != nil {
+		w.WriteHeader(400)
+	}
 	return nil
 }
 
+// method to activate a user
 func (a *Api) Activate(w http.ResponseWriter, r *http.Request) {
 	var req ActivateRequest
 	if err := render.Bind(r, &req); err != nil {
-		log.Printf("[ERROR] Bind req error: %v", err)
-		w.WriteHeader(500)
+		render.Render(w, r, &ActivateResponse{
+			Error: pointer.To("invalid request"),
+		})
 		return
 	}
 
 	userIdRaw := chi.URLParam(r, "id")
 	userId, err := strconv.Atoi(userIdRaw)
 	if err != nil {
-		w.WriteHeader(400)
-		render.Render(w, r, &ActivateResponse{
-			Error: pointer.To("incorrect user id"),
-		})
+		render.Render(w, r, &ActivateResponse{Error: pointer.To("incorrect user id")})
 		return
 	}
 
 	user, err := a.Store.GetUserById(r.Context(), userId)
 	if err != nil {
-		log.Printf("[ERROR] Get user by id: %v", err)
-		w.WriteHeader(500)
+		utils.Render500(w, fmt.Errorf("get user by id: %w", err))
 		return
 	}
 	if user == nil {
-		w.WriteHeader(400)
-		render.Render(w, r, &ActivateResponse{
-			Error: pointer.To("user not found"),
-		})
+		render.Render(w, r, &ActivateResponse{Error: pointer.To("user not found")})
 		return
 	}
 
-	defer func() {
-		if err == nil {
-			err = a.Store.Log(r.Context(), userId, "k8s user has been created")
-		} else {
-			err = a.Store.Log(r.Context(), userId, fmt.Sprintf("k8s user creation failed: %v", err))
-		}
-
-		if err != nil {
-			log.Printf("[ERROR] Save audit log: %v", err)
-		}
-	}()
-
-	username := fmt.Sprintf("edu-user-%d", user.Id)
-
-	certificate, privateKey, err := a.Cluster.GenerateUserCertificate(r.Context(), username)
-	if err != nil {
-		w.WriteHeader(500)
-		log.Printf("[ERROR] Create cluster role binding: %v", err)
-		return
-	}
-
-	if err := a.Store.SaveUserCertificate(r.Context(), &app.UserCertificate{
-		UserId:      user.Id,
-		Username:    username,
-		Certificate: base64.StdEncoding.EncodeToString(certificate),
-		PrivateKey:  base64.StdEncoding.EncodeToString(privateKey),
-		CreatedAt:   time.Now(),
-	}); err != nil {
-		w.WriteHeader(500)
-		log.Printf("[ERROR] Save user certificate: %v", err)
-		return
-	}
-
-	if err := a.Cluster.CreateClusterRoleBinding(r.Context(), username); err != nil {
-		w.WriteHeader(500)
-		log.Printf("[ERROR] Create cluster role binding: %v", err)
+	if err := a.ActivateUC.Do(r.Context(), user); err != nil {
+		utils.Render500(w, fmt.Errorf("activate uc: %w", err))
 		return
 	}
 

@@ -29,6 +29,16 @@ func (s *Store) CreateUser(ctx context.Context, user *app.User) error {
 	return nil
 }
 
+func (s *Store) ChangeStatus(ctx context.Context, userId int, status string) error {
+	query := `
+		UPDATE users
+		SET status = ?
+		WHERE id = ?
+	`
+	_, err := s.db.ExecContext(ctx, query, status, userId)
+	return err
+}
+
 func (s *Store) GrantAdminPermissions(ctx context.Context, userId int) error {
 	tx, err := s.db.Beginx()
 	if err != nil {

@@ -11,6 +11,8 @@ func (s *Store) SaveUserCertificate(ctx context.Context, certificate *app.UserCe
 	query := `
 		INSERT INTO k8s_certificates (user_id, username, certificate, private_key, created_at)
 		VALUES (:user_id, :username, :certificate, :private_key, :created_at)
+		ON CONFLICT (user_id, username)
+		DO UPDATE SET certificate = EXCLUDED.certificate
 	`
 	_, err := s.db.NamedExecContext(ctx, query, certificate)
 	return err
