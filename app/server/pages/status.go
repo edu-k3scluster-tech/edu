@@ -27,15 +27,18 @@ func (p Pages) Status(w http.ResponseWriter, r *http.Request) {
 			utils.Render500(w, err)
 			return
 		}
-		privateKey, err := certificate.GetPrivateKey()
-		if err != nil {
-			utils.Render500(w, err)
-			return
-		}
-		k8sconfig, err = p.Cluster.Config(r.Context(), []byte(rawCertificate), privateKey)
-		if err != nil {
-			utils.Render500(w, err)
-			return
+		// it needs some time to get the certificate so it can be empty
+		if len(rawCertificate) > 0 {
+			privateKey, err := certificate.GetPrivateKey()
+			if err != nil {
+				utils.Render500(w, err)
+				return
+			}
+			k8sconfig, err = p.Cluster.Config(r.Context(), []byte(rawCertificate), privateKey)
+			if err != nil {
+				utils.Render500(w, err)
+				return
+			}
 		}
 	}
 
