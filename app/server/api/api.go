@@ -15,7 +15,8 @@ type Store interface {
 
 type Cluster interface {
 	GenerateUserCertificate(ctx context.Context, username string) ([]byte, []byte, error)
-	CreateClusterRoleBinding(ctx context.Context, username string) error
+	CreateClusterRoleBinding(ctx context.Context, username, role string) error
+	CreateRoleBinding(ctx context.Context, username, namespace, role string) error
 }
 
 type Activate interface {
@@ -24,6 +25,5 @@ type Activate interface {
 
 type Api struct {
 	Store      Store
-	Cluster    Cluster
 	ActivateUC Activate
 }

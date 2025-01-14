@@ -63,7 +63,7 @@ func (s Server) Run(ctx context.Context) error {
 
 	r.Get("/login", pages.Login)
 
-	api := api.Api{Store: s.store, Cluster: s.cluster, ActivateUC: usecases.NewActivateUser(s.store, s.cluster)}
+	api := api.Api{Store: s.store, ActivateUC: usecases.NewActivateUser(s.store, s.cluster)}
 	// REST
 	r.Route("/api", func(r chi.Router) {
 		r.Use(middleware.AllowContentType("application/json"))

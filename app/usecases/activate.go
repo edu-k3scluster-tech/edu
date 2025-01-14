@@ -20,7 +20,8 @@ type activateStore interface {
 
 type activateCluster interface {
 	CertificateSigningRequest(ctx context.Context, username string, key *rsa.PrivateKey) error
-	CreateClusterRoleBinding(ctx context.Context, username string) error
+	CreateClusterRoleBinding(ctx context.Context, username, role string) error
+	CreateRoleBinding(ctx context.Context, username, namespace, role string) error
 	Certificate(ctx context.Context, name string) ([]byte, bool, error)
 }
 
@@ -63,8 +64,23 @@ func (u *ActivateUser) Do(ctx context.Context, user *app.User) error {
 		return err
 	}
 
-	if err := u.cluster.CreateClusterRoleBinding(ctx, certificate.Username); err != nil {
-		return err
+	clusterRoles := []string{
+		"ro-user-role",
+	}
+	for _, role := range clusterRoles {
+		if err := u.cluster.CreateClusterRoleBinding(ctx, certificate.Username, role); err != nil {
+			return err
+		}
+	}
+
+	namespaceToRole := map[string]string{
+		"events-provider-staging": "ro-user-exec-portforward-role",
+		"kafka":                   "ro-user-exec-portforward-role",
+	}
+	for ns, role := range namespaceToRole {
+		if err := u.cluster.CreateRoleBinding(ctx, certificate.Username, ns, role); err != nil {
+			return err
+		}
 	}
 
 	if certData, ready, err := u.cluster.Certificate(ctx, certificate.Username); err != nil {
