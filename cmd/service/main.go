@@ -42,6 +42,10 @@ func main() {
 		}
 	}
 
+	if err := rest.LoadTLSFiles(cfg); err != nil {
+		log.Fatalf("load tls files")
+	}
+
 	clientset, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
 		log.Fatalf("build kube client")
