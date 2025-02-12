@@ -76,6 +76,7 @@ func (u *ActivateUser) Do(ctx context.Context, user *app.User) error {
 	namespaceToRole := map[string]string{
 		"events-provider-staging": "ro-user-exec-portforward-role",
 		"kafka":                   "ro-user-exec-portforward-role",
+		"postgres":                "ro-user-exec-portforward-role",
 	}
 	for ns, role := range namespaceToRole {
 		if err := u.cluster.CreateRoleBinding(ctx, certificate.Username, ns, role); err != nil {
