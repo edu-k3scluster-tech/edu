@@ -18,6 +18,11 @@ func (p Pages) Status(w http.ResponseWriter, r *http.Request) {
 		utils.Render500(w, err)
 		return
 	}
+	jwtToken, err := p.GenerateJWTUC.Token(&user)
+	if err != nil {
+		utils.Render500(w, err)
+		return
+	}
 
 	var k8sconfig string
 
@@ -46,5 +51,7 @@ func (p Pages) Status(w http.ResponseWriter, r *http.Request) {
 		"user":           user,
 		"hasIntegration": k8sconfig != "",
 		"k8sconfig":      k8sconfig,
+		"jwtToken":       jwtToken,
+		"jwtPublicKey":   p.GenerateJWTUC.PublicKey(),
 	})
 }

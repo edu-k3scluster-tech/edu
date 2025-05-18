@@ -3,8 +3,14 @@
 {{ if not .hasIntegration }}
 <p>На данный момент у вас нет активных интеграций.</p>
 {{ end }}
+
 {{ if .k8sconfig }}
 <p>Ваш k8s конфиг:</p>
 <pre><code>{{ .k8sconfig }}</code></pre>
 {{ end }}
+
+<p>Ваш JWT (валиден в течение 24 часов):</p>
+<pre><code>{{ .jwt }}</code></pre>
+<p>Публичный ключ:</p>
+<pre><code>{{ .jwtPublicKey }}</code></pre>
 {{end}}

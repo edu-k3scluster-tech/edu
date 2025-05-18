@@ -23,9 +23,18 @@ type Server struct {
 	authenticator *mdw.Authenticator
 	store         *store.Store
 	cluster       *cluster.Cluster
+	jwtPrivateKey []byte
+	jwtPublicKey  []byte
 }
 
-func New(secured bool, templates map[string]*template.Template, store *store.Store, cluster *cluster.Cluster) *Server {
+func New(
+	secured bool,
+	templates map[string]*template.Template,
+	store *store.Store,
+	cluster *cluster.Cluster,
+	jwtPrivateKey []byte,
+	jwtPublicKey []byte,
+) *Server {
 	authenticator := &mdw.Authenticator{
 		Resolver: store.GetUserByAuthToken,
 	}
@@ -35,6 +44,8 @@ func New(secured bool, templates map[string]*template.Template, store *store.Sto
 		authenticator: authenticator,
 		store:         store,
 		cluster:       cluster,
+		jwtPrivateKey: jwtPrivateKey,
+		jwtPublicKey:  jwtPublicKey,
 	}
 }
 
@@ -44,7 +55,12 @@ func (s Server) Run(ctx context.Context) error {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
-	pages := pages.Pages{Templates: s.templates, Store: s.store, Cluster: s.cluster}
+	pages := pages.Pages{
+		Templates:     s.templates,
+		Store:         s.store,
+		Cluster:       s.cluster,
+		GenerateJWTUC: usecases.NewGenerateJWT(s.jwtPrivateKey, s.jwtPublicKey),
+	}
 	// HTML Users
 	r.Group(func(r chi.Router) {
 		r.Use(mdw.AuthMiddleware(mdw.AnyUser, utils.Redirect("/login"), utils.Redirect("/"), s.authenticator))

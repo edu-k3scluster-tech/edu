@@ -22,10 +22,16 @@ type Cluster interface {
 	Config(ctx context.Context, certificate []byte, privateKey *rsa.PrivateKey) (string, error)
 }
 
+type GenerateJWTUC interface {
+	Token(user *app.User) (string, error)
+	PublicKey() string
+}
+
 type Pages struct {
-	Templates map[string]*template.Template
-	Store     Store
-	Cluster   Cluster
+	Templates     map[string]*template.Template
+	Store         Store
+	Cluster       Cluster
+	GenerateJWTUC GenerateJWTUC
 }
 
 func (p Pages) render(w http.ResponseWriter, status int, page, tmplName string, data any) {

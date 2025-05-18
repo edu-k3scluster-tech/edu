@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"database/sql"
+	"encoding/base64"
 	"log"
 	"os"
 
@@ -71,7 +72,33 @@ func main() {
 		log.Fatalf("collect templates: %v", err)
 	}
 
-	srv := server.New(false, tpls, store.New(db), cluster.New(clientset, cfg.CAData))
+	privateKeyB64, exists := os.LookupEnv("JWT_PRIVATE_KEY")
+	if !exists {
+		log.Fatalf("JWT_PRIVATE_KEY env is required")
+	}
+
+	publicKeyB64, exists := os.LookupEnv("JWT_PUBLIC_KEY")
+	if !exists {
+		log.Fatalf("JWT_PUBLIC_KEY env is required")
+	}
+
+	privateKey, err := base64.StdEncoding.DecodeString(privateKeyB64)
+	if err != nil {
+		log.Fatalf("decode JWT_PRIVATE_KEY: %v", err)
+	}
+
+	publicKey, err := base64.StdEncoding.DecodeString(publicKeyB64)
+	if err != nil {
+		log.Fatalf("decode JWT_PUBLIC_KEY: %v", err)
+	}
+	srv := server.New(
+		false,
+		tpls,
+		store.New(db),
+		cluster.New(clientset, cfg.CAData),
+		privateKey,
+		publicKey,
+	)
 	if err := srv.Run(context.Background()); err != nil {
 		log.Fatalf("run srv: %v", err)
 	}
