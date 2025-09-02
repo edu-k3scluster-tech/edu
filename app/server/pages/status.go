@@ -48,10 +48,9 @@ func (p Pages) Status(w http.ResponseWriter, r *http.Request) {
 	}
 
 	p.render(w, 200, "status.tmpl.html", "", map[string]interface{}{
-		"user":           user,
-		"hasIntegration": k8sconfig != "",
-		"k8sconfig":      k8sconfig,
-		"jwtToken":       jwtToken,
-		"jwtPublicKey":   p.GenerateJWTUC.PublicKey(),
+		"user":         user,
+		"k8sconfig":    k8sconfig,
+		"jwtToken":     jwtToken,
+		"jwtPublicKey": p.GenerateJWTUC.PublicKey(),
 	})
 }

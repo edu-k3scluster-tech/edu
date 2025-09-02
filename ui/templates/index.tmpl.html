@@ -13,7 +13,6 @@
     <nav>
       <a href="/">Главная</a>
       <a href="/status">Статус</a>
-      <a href="/audit">Аудит лог</a>
       {{ if .user.IsStaff }}
       <a href="/users">Пользователи</a>
       {{ end }}
@@ -23,14 +22,6 @@
   </header>
 
   <main>
-    {{ if .user }}
-    {{ if eq .user.Status "new" }}
-    <p class="notice">
-      <strong>Аккаунт еще не подтвержден.</strong><br>
-      Этот процесс может занять некоторое время. Пожалуйста, подождите.
-    </p>
-    {{ end }}
-    {{ end }}
     {{template "main" .}}
   </main>
 
